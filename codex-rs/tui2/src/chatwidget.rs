@@ -1617,6 +1617,98 @@ impl ChatWidget {
             SlashCommand::Mcp => {
                 self.add_mcp_output();
             }
+            SlashCommand::Claude => {
+                use crate::bottom_pane::list_selection_view::SelectionItem;
+                use crate::bottom_pane::SelectionViewParams;
+                use std::fs;
+                use std::path::PathBuf;
+
+                let dir = self.config.cwd.join(".claude").join("commands");
+                let Ok(read_dir) = fs::read_dir(&dir) else {
+                    self.add_info_message(
+                        "No .claude/commands found in this project.".to_string(),
+                        Some("Create .claude/commands/*.md to enable".to_string()),
+                    );
+                    return;
+                };
+                let mut items: Vec<SelectionItem> = Vec::new();
+                for entry in read_dir.flatten() {
+                    let path = entry.path();
+                    if !path.is_file() {
+                        continue;
+                    }
+                    if path.extension().and_then(|s| s.to_str()) != Some("md") {
+                        continue;
+                    }
+                    let name = path
+                        .file_stem()
+                        .and_then(|s| s.to_str())
+                        .unwrap_or("?")
+                        .to_string();
+                    let content = match fs::read_to_string(&path) {
+                        Ok(s) => s,
+                        Err(_) => continue,
+                    };
+                    let mut title = None;
+                    for line in content.lines() {
+                        let l = line.trim();
+                        if l.starts_with('#') {
+                            title = Some(l.trim_start_matches('#').trim().to_string());
+                            break;
+                        }
+                        if !l.is_empty() {
+                            break;
+                        }
+                    }
+                    let display_name = name.clone();
+                    let description = title.clone();
+                    let body = content.clone();
+                    let actions: Vec<crate::bottom_pane::SelectionAction> = vec![Box::new(
+                        move |tx| {
+                            tx.send(crate::app_event::AppEvent::SetComposerText(body.clone()));
+                        },
+                    )];
+                    items.push(SelectionItem {
+                        name: display_name,
+                        description,
+                        selected_description: None,
+                        is_current: false,
+                        is_default: false,
+                        actions,
+                        dismiss_on_select: true,
+                        search_value: Some(name),
+                        ..Default::default()
+                    });
+                }
+                if items.is_empty() {
+                    self.add_info_message(
+                        "No .claude/commands/*.md files found.".to_string(),
+                        None,
+                    );
+                    return;
+                }
+                items.sort_by(|a, b| a.name.cmp(&b.name));
+                let params = SelectionViewParams {
+                    title: Some("Claude Commands".to_string()),
+                    subtitle: Some(format!(
+                        "Project: {}",
+                        self.config
+                            .cwd
+                            .strip_prefix(&self.config.cwd)
+                            .ok()
+                            .and_then(|p| p.to_str())
+                            .unwrap_or("")
+                    )),
+                    footer_hint: Some(crate::bottom_pane::popup_consts::standard_popup_hint_line()),
+                    items,
+                    is_searchable: true,
+                    search_placeholder: Some("Filter commands".to_string()),
+                    header: Box::new(()),
+                    initial_selected_idx: None,
+                };
+                self.bottom_pane.show_selection_view(params);
+                self.request_redraw();
+            }
             SlashCommand::Rollout => {
                 if let Some(path) = self.rollout_path() {
                     self.add_info_message(

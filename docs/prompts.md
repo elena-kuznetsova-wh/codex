@@ -5,6 +5,7 @@ Custom prompts turn your repeatable instructions into reusable slash commands, s
 ### Where prompts live
 
 - Location: store prompts in `$CODEX_HOME/prompts/` (defaults to `~/.codex/prompts/`). Set `CODEX_HOME` if you want to use a different folder.
+- Project prompts: when running inside a repository, Codex also auto-discovers Markdown files in `.claude/commands/` (relative to the project root). Each `*.md` becomes a prompt named after the file stem.
 - File type: Codex only loads `.md` files. Non-Markdown files are ignored. Both regular files and symlinks to Markdown files are supported.
 - Naming: The filename (without `.md`) becomes the prompt name. A file called `review.md` registers the prompt `review`.
 - Refresh: Prompts are loaded when a session starts. Restart Codex (or start a new session) after adding or editing files.
@@ -30,7 +31,7 @@ Custom prompts turn your repeatable instructions into reusable slash commands, s
 - Numeric placeholders: `$1`–`$9` insert the first nine positional arguments you type after the command. `$ARGUMENTS` inserts all positional arguments joined by a single space. Use `$$` to emit a literal dollar sign (Codex leaves `$$` untouched).
 - Named placeholders: Tokens such as `$FILE` or `$TICKET_ID` expand from `KEY=value` pairs you supply. Keys are case-sensitive—use the same uppercase name in the command (for example, `FILE=...`).
 - Quoted arguments: Double-quote any value that contains spaces, e.g. `TICKET_TITLE="Fix logging"`.
-- Invocation syntax: Run prompts via `/prompts:<name> ...`. When the slash popup is open, typing either `prompts:` or the bare prompt name will surface `/prompts:<name>` suggestions.
+- Invocation syntax: Run prompts via `/prompts:<name> ...`. When the slash popup is open, typing either `prompts:` or the bare prompt name will surface `/prompts:<name>` suggestions. This works for both `$CODEX_HOME/prompts` and project prompts under `.claude/commands`.
 - Error handling: If a prompt contains named placeholders, Codex requires them all. You will see a validation message if any are missing or malformed.
 
 ### Running a prompt

@@ -29,6 +29,7 @@ pub enum SlashCommand {
     Quit,
     Exit,
     Feedback,
+    Claude,
     Rollout,
     TestApproval,
 }
@@ -53,6 +54,7 @@ impl SlashCommand {
             SlashCommand::Approvals => "choose what Codex can do without approval",
             SlashCommand::Mcp => "list configured MCP tools",
             SlashCommand::Logout => "log out of Codex",
+            SlashCommand::Claude => "run project .claude/commands",
             SlashCommand::Rollout => "print the rollout file path",
             SlashCommand::TestApproval => "test approval request",
         }
@@ -82,6 +84,7 @@ impl SlashCommand {
             | SlashCommand::Status
             | SlashCommand::Mcp
             | SlashCommand::Feedback
+            | SlashCommand::Claude
             | SlashCommand::Quit
             | SlashCommand::Exit => true,
             SlashCommand::Rollout => true,

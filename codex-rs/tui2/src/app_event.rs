@@ -175,6 +175,9 @@ pub(crate) enum AppEvent {
     OpenFeedbackConsent {
         category: FeedbackCategory,
     },
+
+    /// Replace the composer text with provided content.
+    SetComposerText(String),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

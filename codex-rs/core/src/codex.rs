@@ -1931,12 +1931,27 @@ mod handlers {
     }
 
     pub async fn list_custom_prompts(sess: &Session, sub_id: String) {
-        let custom_prompts: Vec<CustomPrompt> =
-            if let Some(dir) = crate::custom_prompts::default_prompts_dir() {
-                crate::custom_prompts::discover_prompts_in(&dir).await
-            } else {
-                Vec::new()
-            };
+        // 1) Built-in user prompts from $CODEX_HOME/prompts
+        let mut custom_prompts: Vec<CustomPrompt> = if let Some(dir) = crate::custom_prompts::default_prompts_dir() {
+            crate::custom_prompts::discover_prompts_in(&dir).await
+        } else {
+            Vec::new()
+        };
+
+        // 2) Project-scoped prompts: `.claude/commands/*.md` under the session CWD
+        //    This allows teams migrating from Claude to trigger their existing
+        //    command playbooks via the slash popup as `/prompts:<name>`.
+        //    We intentionally do not include `.claude/shared` to avoid surfacing
+        //    generic reference docs in the popup.
+        let cwd = {
+            let state = sess.state.lock().await;
+            state.session_configuration.cwd.clone()
+        };
+        let claude_commands = cwd.join(".claude").join("commands");
+        if claude_commands.exists() {
+            let mut project_prompts = crate::custom_prompts::discover_prompts_in(&claude_commands).await;
+            custom_prompts.append(&mut project_prompts);
+        }
 
         let event = Event {
             id: sub_id,
