@@ -1690,15 +1690,7 @@ impl ChatWidget {
                 items.sort_by(|a, b| a.name.cmp(&b.name));
                 let params = SelectionViewParams {
                     title: Some("Claude Commands".to_string()),
-                    subtitle: Some(format!(
-                        "Project: {}",
-                        self.config
-                            .cwd
-                            .strip_prefix(&self.config.cwd)
-                            .ok()
-                            .and_then(|p| p.to_str())
-                            .unwrap_or("")
-                    )),
+                    subtitle: Some(format!("Project: {}", self.config.cwd.display())),
                     footer_hint: Some(crate::bottom_pane::popup_consts::standard_popup_hint_line()),
                     items,
                     is_searchable: true,
