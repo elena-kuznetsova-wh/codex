@@ -1618,10 +1618,9 @@ impl ChatWidget {
                 self.add_mcp_output();
             }
             SlashCommand::Claude => {
-                use crate::bottom_pane::list_selection_view::SelectionItem;
+                use crate::bottom_pane::SelectionItem;
                 use crate::bottom_pane::SelectionViewParams;
                 use std::fs;
-                use std::path::PathBuf;
 
                 let dir = self.config.cwd.join(".claude").join("commands");
                 let Ok(read_dir) = fs::read_dir(&dir) else {
